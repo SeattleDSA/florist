@@ -41,6 +41,20 @@ function lastEventIndexOfTypeForMember(eventType, memberId) {
   return -1;
 }
 
+var finalJsonTextarea = document.getElementById('final-json');
+
+function teardownAndEnd() {
+  // Wipe dangling pointers to sensitive data
+  memberList = null;
+  fuse = null;
+  // Wipe these too, just for good measure
+  operator = null;
+  topMember = null;
+  // write out our fallback / inspection stuff
+  finalJsonTextarea.value = JSON.stringify(registry, null, 2);
+  changeMode('end');
+}
+
 registry = localStorage.getItem(registryId);
 if (registry) {
   registry = JSON.parse(registry);
@@ -340,22 +354,6 @@ function takeTopMemberAction() {
 }
 
 topActionButton.addEventListener('click', takeTopMemberAction);
-
-// ending stuff
-
-var finalJsonTextarea = document.getElementById('final-json');
-
-function teardownAndEnd() {
-  // Wipe dangling pointers to sensitive data
-  memberList = null;
-  fuse = null;
-  // Wipe these too, just for good measure
-  operator = null;
-  topMember = null;
-  // write out our fallback / inspection stuff
-  finalJsonTextarea.value = JSON.stringify(registry, null, 2);
-  changeMode('end');
-}
 
 function takeFinishAction() {
   var now = new Date();
