@@ -404,7 +404,7 @@ document.getElementById('start-new')
 document.getElementById('start-new-late')
   .addEventListener('click', fullyReset);
 document.getElementById('resume')
-  .addEventListener('click', changeMode.bind(null,'lookup'));
+  .addEventListener('click', changeMode.bind(null, 'setup'));
 document.getElementById('resume-end')
   .addEventListener('click', teardownAndEnd);
 
