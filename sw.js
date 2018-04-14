@@ -76,7 +76,7 @@ function checkForUpdatedResponse(request, cachedResponse, newResponse) {
 
 function addNewResponseToCache(request, response) {
   return caches.open('core').then(function(cache) {
-    return cache.put(request, response.clone());
+    return cache.put(request, response);
   });
 }
 
@@ -84,15 +84,16 @@ function addNewResponseToCache(request, response) {
 // we handle all requests as potentially-updated and to-be-cached
 self.addEventListener('fetch', function(event) {
   event.respondWith(
-    caches.match(event.request).then(function(cachedResponse) {
-      var newResponsePromise = fetch(event.request);
+    Promise.all([caches.match(event.request), fetch(event.request)])
+    .then(function(responses) {
+      var cachedResponse = responses[0];
+      var newResponse = responses[1];
+      event.waitUntil(cachedResponse ?
+        checkForUpdatedResponse(event.request,
+          cachedResponse.clone(), newResponse.clone())
+      : addNewResponseToCache(event.request, newResponse.clone()));
 
-      event.waitUntil(newResponsePromise.then(function(newResponse){
-        cachedResponse ?
-        checkForUpdatedResponse(event.request, cachedResponse, newResponse)
-      : addNewResponseToCache(event.request, newResponse)}));
-
-      return cachedResponse || newResponsePromise;
+      return cachedResponse || newResponse;
     })
   );
 });
