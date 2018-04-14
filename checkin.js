@@ -193,7 +193,7 @@ function updateOperatorState() {
   memberSearchInput.value = '';
   displayNoMember(true);
   if (operator) {
-    footerMessage.textContent = 'Operating as ' + topMember.name;
+    footerMessage.textContent = 'Operating as ' + operator.name;
     finishButton.textContent = 'Stop';
     finishButton.hidden = false;
   } else {
