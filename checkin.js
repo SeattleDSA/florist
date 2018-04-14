@@ -27,13 +27,18 @@ function changeMode(mode) {
 }
 
 function lastEventIndexOfType(eventType) {
-  registry.findLastIndex(function(evt){
-    return evt.type == eventType});
+  for (var i = registry.length - 1; i > -1; --i) {
+    if (registry[i].type == eventType) return i;
+  }
+  return -1;
 }
 
 function lastEventIndexOfTypeForMember(eventType, memberId) {
-  registry.findLastIndex(function(evt){
-    return evt.type == eventType && evt.member == memberId});
+  for (var i = registry.length - 1; i > -1; --i) {
+    if (registry[i].type == eventType &&
+      registry[i].member == memberId) return i;
+  }
+  return -1;
 }
 
 registry = localStorage.getItem(registryId);
