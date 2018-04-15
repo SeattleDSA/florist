@@ -1,0 +1,20 @@
+{
+  "name": "florist",
+  "short_name": "florist",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "theme_color": "#f02746",
+  "background_color": "#fff",
+  "description": "Check-in app for DSA chapter meetings",
+  "icons": [{
+    "src": "assets/florist-icon_256px.png",
+    "sizes": "256x256",
+    "type": "image/png"
+  },
+  {
+    "src": "assets/florist-icon.svg",
+    "sizes": "256x256",
+    "type": "image/svg"
+  }]
+}
