@@ -3,22 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/base-min.css" integrity="sha256-XsW+lsCsaHybdLLnHWsTuwb9A2NuD2hVVlsxtiipTZQ=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/forms-min.css" integrity="sha256-qgMQ+mFfAhlAKj3gSapq62o7SIAYbWAPxYhAykHSzcc=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/buttons-min.css" integrity="sha256-+RBx38dshEH8QgPl8Hg2BaGC1vdhyy/fnnnBXRtMdnE=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bigfishtv-turret/4.1.3/turretcss.min.css" integrity="sha256-OyCIWTH8XVzlBgue2UM2JLSq512Oq2SOoHdM1MOy0GM=" crossorigin="anonymous" />
 <link rel="stylesheet" href="style.css">
 <title>florist database generator</title>
 </head>
 <body>
-<form class="pure-form pure-form-stacked" id="form">
-<fieldset>
-<label for="xlsx-file">Membership spreadsheet</label>
-<input type="file" id="xlsx-file">
-<label for="xlsx-file">Passphrase</label>
-<input type="password" id="passphrase">
-<button type="submit" class="pure-button pure-button-primary" id="dl-button" disabled>Download encrypted database</button>
-</fieldset>
-</form>
+<main class="container">
+  <form id="form">
+    <div class="field">
+      <label for="xlsx-file">Membership spreadsheet</label>
+      <input type="file" id="xlsx-file">
+    </div>
+    <div class="field">
+      <label for="xlsx-file">Passphrase</label>
+      <input type="password" id="passphrase">
+    </div>
+    <button type="submit" class="button-primary" id="dl-button" disabled>Download encrypted database</button>
+  </form>
+</main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tweetnacl/1.0.0/nacl-fast.min.js" integrity="sha256-PFNk0L1SZO7Vl1OXdyjcqo76UxE3EnJ66+y6dr2qq70=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.12.9/xlsx.full.min.js" integrity="sha256-vQtjAwfnRVCP0Rc4o02LghGM372FOjehAdx7SnzHiEI=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js" integrity="sha256-FPJJt8nA+xL4RU6/gsriA8p8xAeLGatoyTjldvQKGdE=" crossorigin="anonymous"></script>

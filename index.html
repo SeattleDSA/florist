@@ -3,51 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/base-min.css" integrity="sha256-XsW+lsCsaHybdLLnHWsTuwb9A2NuD2hVVlsxtiipTZQ=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/forms-min.css" integrity="sha256-qgMQ+mFfAhlAKj3gSapq62o7SIAYbWAPxYhAykHSzcc=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/1.0.0/buttons-min.css" integrity="sha256-+RBx38dshEH8QgPl8Hg2BaGC1vdhyy/fnnnBXRtMdnE=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bigfishtv-turret/4.1.3/turretcss.min.css" integrity="sha256-OyCIWTH8XVzlBgue2UM2JLSq512Oq2SOoHdM1MOy0GM=" crossorigin="anonymous" />
 <link rel="stylesheet" href="style.css">
 <title>National Association of Florists With Mismatched Gloves Check-In</title>
 </head>
 <body>
-<div id="setup-mode">
-  <form id="setup-form" class="pure-form pure-form-stacked">
-    <label for="sbox-file">Encrypted Member List File</label>
-    <input type="file" id="sbox-file">
-    <label for="passphrase">Passphrase</label>
-    <input type="password" id="passphrase">
-    <button type="submit" id="setup-button">Start Sign-in</button>
-  </form>
-</div>
-<div id="lookup-mode" hidden>
-  <label for="member-search">Member Name</label>
-  <input id="member-search" maxlength="32">
-  <div id="top-result" hidden>
-    <div id="top-name"></div>
-    <div id="top-details">
-      <span id="top-date"></span>
-      <span id="top-action"> <span id="top-action-taken" hidden></span> <button type="button" id="top-action-button"></button></span>
+<main class="container">
+  <div id="setup-mode">
+    <form id="setup-form">
+      <div class="field">
+        <label for="sbox-file">Encrypted Member List File</label>
+        <input type="file" id="sbox-file">
+      </div>
+      <div class="field">
+        <label for="passphrase">Passphrase</label>
+        <input type="password" id="passphrase">
+      </div>
+      <button type="submit" class="button-block button-primary field" id="setup-button">Start Sign-in</button>
+    </form>
+  </div>
+  <div id="lookup-mode" hidden>
+    <div class="field">
+      <label for="member-search">Member Name</label>
+      <input id="member-search" maxlength="32">
+    </div>
+    <div id="top-result" class="border padding-s" hidden>
+      <div id="top-name" class="font-size-xl"></div>
+      <div id="top-details">
+        <span id="top-date"></span>
+        <span id="top-action" class="right"> <span id="top-action-taken" hidden></span> <button type="button" id="top-action-button" class="button-xs"></button></span>
+      </div>
+    </div>
+    <div id="no-result" class="border text-center padding-s">
+    </div>
+    <div id="lookup-footer" class="container position-bottom background-dark padding-xs color-white">
+      <span id="footer-message"></span>
+      <button id="finish-button" class="right button-xs warning"></button>
     </div>
   </div>
-  <div id="no-result">
+  <div id="end-mode" hidden>
+    <button type="button" id="save-signins" class="button-block button-primary field">Save sign-in log</button>
+    <p>In case something's wrong with that file, you can copy/paste this text:</p>
+    <textarea id="final-json" readonly class="field"></textarea>
+    <button type="button" id="start-new" class="field button-block success">Clear and restart</button>
+    <button type="button" id="resume"  class="field button-block warning">Derp, more people showed up</button>
   </div>
-  <div id="lookup-footer">
-    <span id="footer-message"></span>
-    <button id="finish-button"></button>
+  <div id="late-end-mode" hidden>
+    <p>You have an <strong>old meeting sign-in log</strong>.</p>
+    <button type="button" id="start-new-late">I submitted it, clear and start a new meeting</button>
+    <button type="button" id="resume-end">Wait, show me the old log</button>
   </div>
-</div>
-<div id="end-mode" hidden>
-  <button type="button" id="save-signins">Save sign-in log</button>
-  <p>In case something's wrong with that file, you can copy/paste this text:</p>
-  <textarea id="final-json" readonly></textarea>
-  <button type="button" id="start-new">Clear and restart</button>
-  <button type="button" id="resume">Derp, more people showed up</button>
-</div>
-<div id="late-end-mode" hidden>
-  <p>You have an <strong>old meeting sign-in log</strong>.</p>
-  <button type="button" id="start-new-late">I submitted it, clear and start a new meeting</button>
-  <button type="button" id="resume-end">Wait, show me the old log</button>
-</div>
+</main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tweetnacl/1.0.0/nacl-fast.min.js" integrity="sha256-PFNk0L1SZO7Vl1OXdyjcqo76UxE3EnJ66+y6dr2qq70=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.0/fuse.min.js" integrity="sha256-CB/G+xw3ep7+dlklAxcIvF20YMfFtF+7xbtauQSMi78=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js" integrity="sha256-FPJJt8nA+xL4RU6/gsriA8p8xAeLGatoyTjldvQKGdE=" crossorigin="anonymous"></script>
