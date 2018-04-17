@@ -1,4 +1,4 @@
-/* global Fuse nacl localForage Blob saveAs */
+/* global Fuse nacl localforage Blob saveAs */
 (function(){
 "use strict";
 
@@ -78,7 +78,7 @@ function initializeRegistry(existingRegistry) {
 }
 
 var registryInitializedPromise =
-  localForage.getItem(registryId).then(initializeRegistry);
+  localforage.getItem(registryId).then(initializeRegistry);
 
 var setupFormElement = document.getElementById('setup-form');
 var sboxFileInput = document.getElementById('sbox-file');
@@ -212,7 +212,7 @@ function registerEvent(evt) {
   }
 
   function persistRegistry() {
-    return localForage.setItem(registryId, registry)
+    return localforage.setItem(registryId, registry)
       .catch(logErrorAndResolve).then(repeatOrComplete);
   }
 
@@ -422,7 +422,7 @@ saveSigninsButton.addEventListener('click', saveSignins);
 
 function fullyReset() {
   registry = [];
-  localForage.removeItem(registryId).then(changeMode.bind(null, 'setup'));
+  localforage.removeItem(registryId).then(changeMode.bind(null, 'setup'));
 }
 
 document.getElementById('start-new')
