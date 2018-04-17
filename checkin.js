@@ -318,8 +318,8 @@ function signedInMessage(date) {
   return "Signed in " + localTime(date);
 }
 
-function enjoinderMessage(date) {
-  return "Enjoindered " + localTime(date);
+function apprisalMessage(date) {
+  return "Apprised " + localTime(date);
 }
 
 function displayTopMember() {
@@ -349,13 +349,13 @@ function displayTopMember() {
     topDate.textContent = "Dues expired " + isoDate(expiryDate);
     topDetails.className = topDetailsBaseClass + topDetailsExpiredDuesClass;
     if (operator) {
-      var priorEnjoinder =
-        lastEventIndexOfTypeForMember('enjoinder', topMember.id);
-      if (priorEnjoinder > -1) {
+      var priorApprisal =
+        lastEventIndexOfTypeForMember('apprisal', topMember.id);
+      if (priorApprisal > -1) {
         showActionTaken(
-          enjoinderMessage(checkinRecord.events[priorEnjoinder].date));
+          apprisalMessage(checkinRecord.events[priorApprisal].date));
       } else {
-        showActionButton("Enjoinder");
+        showActionButton("Apprise");
       }
     } else {
       showActionTaken("(This member should not handle sign-in)");
@@ -398,7 +398,7 @@ function takeTopMemberAction() {
         date: now.toISOString(),
         operator: operator.id
       });
-      showActionTaken(enjoinderMessage(now));
+      showActionTaken(apprisalMessage(now));
     }
 
   // Initial operator login
