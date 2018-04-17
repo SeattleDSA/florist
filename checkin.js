@@ -232,7 +232,6 @@ setupFormElement.addEventListener('submit', function (evt) {
 
 // signin stuff
 
-var lookupModeContainer = document.getElementById('lookup-mode');
 var memberSearchInput = document.getElementById('member-search');
 var topResult = document.getElementById('top-result');
 var noResult = document.getElementById('no-result');
@@ -418,20 +417,22 @@ function takeTopMemberAction() {
 topActionButton.addEventListener('click', takeTopMemberAction);
 
 function enterNoteMode() {
-  lookupModeContainer.hidden = true;
+  noteStartButton.hidden = true;
   noteModeContainer.hidden = false;
 }
 
 function leaveNoteMode() {
   noteTextArea.value = '';
   noteModeContainer.hidden = true;
-  lookupModeContainer.hidden = false;
+  noteStartButton.hidden = false;
 }
 
 function recordNote() {
   return registerEvent({
     type: 'note',
     body: noteTextArea.value,
+    // we want the ability to take notes if you can't get an operator,
+    // so we use a dummy value of 0 which hopefully no member would ever have
     operator: operator ? operator.id : '0',
     date: new Date().toISOString()
   }).then(leaveNoteMode);
