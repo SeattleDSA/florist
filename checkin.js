@@ -9,8 +9,8 @@ var fuse;
 var operator;
 var topMember;
 
-var registry;
-var registryId = 'currentMeetingEventLog';
+var checkinRecord;
+var checkinRecordId = 'storedCheckinRecord';
 
 var modeContainers = {
   setup: document.getElementById('setup-mode'),
@@ -27,20 +27,21 @@ function changeMode(mode) {
 }
 
 function lastEventIndexOfType(eventType) {
-  for (var i = registry.length - 1; i > -1; --i) {
-    if (registry[i].type == eventType) return i;
+  for (var i = checkinRecord.events.length - 1; i > -1; --i) {
+    if (checkinRecord.events[i].type == eventType) return i;
   }
   return -1;
 }
 
 function lastEventIndexOfTypeForMember(eventType, memberId) {
-  for (var i = registry.length - 1; i > -1; --i) {
-    if (registry[i].type == eventType &&
-      registry[i].member == memberId) return i;
+  for (var i = checkinRecord.events.length - 1; i > -1; --i) {
+    if (checkinRecord.events[i].type == eventType &&
+      checkinRecord.events[i].member == memberId) return i;
   }
   return -1;
 }
 
+var endingEventNameElement = document.getElementById('ending-event-name');
 var finalJsonTextarea = document.getElementById('final-json');
 
 function teardownAndEnd() {
@@ -51,17 +52,27 @@ function teardownAndEnd() {
   operator = null;
   topMember = null;
   // write out our fallback / inspection stuff
-  finalJsonTextarea.value = JSON.stringify(registry, null, 2);
+  endingEventNameElement.textContent = checkinRecord.at;
+  finalJsonTextarea.value = JSON.stringify(checkinRecord, null, 2);
   changeMode('end');
 }
 
-function initializeRegistry(existingRegistry) {
-  if (existingRegistry) {
-    registry = existingRegistry;
+function startNewCheckinRecord () {
+  checkinRecord = {
+    at: '',
+    events: []
+  };
+}
+
+function initializeCheckinRecord(existingRecord) {
+  if (existingRecord) {
+    checkinRecord = existingRecord;
     var lastOpenIndex = lastEventIndexOfType('open');
     var lastCloseIndex = lastEventIndexOfType('close');
     if (lastCloseIndex > lastOpenIndex) {
-      if (new Date(registry[lastCloseIndex].date) > Date.now() - 86400000) {
+      var msSinceLastClose =
+        Date.now() - new Date(checkinRecord.events[lastCloseIndex].date);
+      if (msSinceLastClose - 86400000) {
         teardownAndEnd();
       } else {
         changeMode('lateEnd');
@@ -70,15 +81,48 @@ function initializeRegistry(existingRegistry) {
       // TODO: display note that there is an unfinished meeting in progress
 
       // Signal to load operator after setup
-      operator = registry[lastOpenIndex].operator;
+      operator = checkinRecord.events[lastOpenIndex].operator;
     }
   } else {
-    registry = [];
+    startNewCheckinRecord();
   }
 }
 
-var registryInitializedPromise =
-  localforage.getItem(registryId).then(initializeRegistry);
+var recordInitializedPromise =
+  localforage.getItem(checkinRecordId).then(initializeCheckinRecord);
+
+
+function logErrorAndResolve(err) {
+  console.error(err);
+}
+
+var pendingRecordPersistence = null;
+var pendingRecordPersistenceIsStale = false;
+function registerEvent(evt) {
+  if (!evt.date) {
+    throw new Error('Registered events must be pre-dated');
+  }
+  function repeatOrComplete() {
+    if (pendingRecordPersistenceIsStale) {
+      pendingRecordPersistenceIsStale = false;
+      return persistRecord();
+    } else {
+      return pendingRecordPersistence = null;
+    }
+  }
+
+  function persistRecord() {
+    return localforage.setItem(checkinRecordId, checkinRecord)
+      .catch(logErrorAndResolve).then(repeatOrComplete);
+  }
+
+  checkinRecord.events.push(evt);
+
+  if (pendingRecordPersistence) {
+    pendingRecordPersistenceIsStale = true;
+    return pendingRecordPersistence;
+  } else return pendingRecordPersistence = persistRecord();
+}
 
 var setupFormElement = document.getElementById('setup-form');
 var sboxFileInput = document.getElementById('sbox-file');
@@ -115,13 +159,15 @@ function getArrayBufferFromFile(file) {
   });
 }
 
-function setupMemberList(decodedMemberList) {
+function setupMemberList(decodedDatabase) {
   // nullify inputs that could be used for potential re-entry
   sboxFileInput.value = null;
   passphraseInput.value = '';
   updateSetupButtonState();
 
-  memberList = decodedMemberList;
+  // store data in globals
+  checkinRecord.at = decodedDatabase.name;
+  memberList = decodedDatabase.members;
 
   // set up search structure
   fuse = new Fuse(memberList, {
@@ -133,17 +179,22 @@ function setupMemberList(decodedMemberList) {
     maxPatternLength: 32,
     keys: ['name']
   });
+
+  return registerEvent({
+    type: 'open',
+    date: new Date().toISOString()
+  });
 }
 
 // note that this is called only by the success branch of attemptSetup
-// and only after initializeRegistry has completed
+// and only after initializeCheckinRecord has completed
 function finishSetup() {
   // Resume mode
   if (operator) {
     operator = memberList.find(function(member){
       return member.id == operator});
     registerEvent({
-      type: 'resume',
+      type: 'restart',
       operator: operator.id,
       date: new Date().toISOString()
     });
@@ -164,7 +215,7 @@ function attemptSetup() {
     var jsonBuffer = nacl.secretbox.open(boxBuffer, secretNonce, secretKey);
     if (jsonBuffer) {
       setupMemberList(JSON.parse(arrayBufferToUtf8String(jsonBuffer)));
-      return registryInitializedPromise.then(finishSetup);
+      return recordInitializedPromise.then(finishSetup);
     } else {
       // TODO: do in-page auth failure reporting
       alert('Invalid passphrase');
@@ -196,36 +247,6 @@ var topDetailsBaseClass = '';
 var topDetailsCurrentDuesClass = 'current-dues';
 var topDetailsExpiredDuesClass = 'expired-dues';
 
-
-function logErrorAndResolve(err) {
-  console.error(err);
-}
-
-var pendingRegistryPersistence = null;
-var pendingRegistryPersistenceIsStale = false;
-function registerEvent(evt) {
-  function repeatOrComplete() {
-    if (pendingRegistryPersistenceIsStale) {
-      pendingRegistryPersistenceIsStale = false;
-      return persistRegistry();
-    } else {
-      return pendingRegistryPersistence = null;
-    }
-  }
-
-  function persistRegistry() {
-    return localforage.setItem(registryId, registry)
-      .catch(logErrorAndResolve).then(repeatOrComplete);
-  }
-
-  registry.push(evt);
-
-  if (pendingRegistryPersistence) {
-    pendingRegistryPersistenceIsStale = true;
-    return pendingRegistryPersistence;
-  } else return pendingRegistryPersistence = persistRegistry();
-}
-
 // TODO: move this to utils, too
 function isoDate(date) {
   return new Date(date || Date.now()).toISOString().slice(0,10);
@@ -243,7 +264,7 @@ function updateOperatorState() {
     finishButton.textContent = 'Stop';
     finishButton.hidden = false;
   } else {
-    if (registry.length == 0) {
+    if (checkinRecord.events.length == 0) {
       finishButton.hidden = true;
       footerMessage.textContent =
         'Search for your name above to start signing in';
@@ -278,7 +299,7 @@ function findSignin(memberId) {
   var signinIndex = lastEventIndexOfTypeForMember('signin', memberId);
   if (signinIndex > -1) {
     var cancelIndex = lastEventIndexOfTypeForMember('cancel', memberId);
-    if (cancelIndex < signinIndex) return registry[signinIndex];
+    if (cancelIndex < signinIndex) return checkinRecord.events[signinIndex];
     else return null;
   } else return null;
 }
@@ -299,8 +320,8 @@ function signedInMessage(date) {
   return "Signed in " + localTime(date);
 }
 
-function refusedMessage(date) {
-  return "Informed " + localTime(date);
+function enjoinderMessage(date) {
+  return "Enjoindered " + localTime(date);
 }
 
 function displayTopMember() {
@@ -330,12 +351,13 @@ function displayTopMember() {
     topDate.textContent = "Dues expired " + isoDate(expiryDate);
     topDetails.className = topDetailsBaseClass + topDetailsExpiredDuesClass;
     if (operator) {
-      var priorRefusal =
-        lastEventIndexOfTypeForMember('refusal', topMember.id);
-      if (priorRefusal > -1) {
-        showActionTaken(refusedMessage(registry[priorRefusal].date));
+      var priorEnjoinder =
+        lastEventIndexOfTypeForMember('enjoinder', topMember.id);
+      if (priorEnjoinder > -1) {
+        showActionTaken(
+          enjoinderMessage(checkinRecord.events[priorEnjoinder].date));
       } else {
-        showActionButton("Inform");
+        showActionButton("Enjoinder");
       }
     } else {
       showActionTaken("(This member should not handle sign-in)");
@@ -343,10 +365,10 @@ function displayTopMember() {
   }
 }
 
-function openTopMemberAsOperator() {
+function startTopMemberAsOperator() {
   var now = new Date();
   registerEvent({
-    type: 'open',
+    type: 'start',
     operator: topMember.id,
     date: now.toISOString()
   });
@@ -373,32 +395,39 @@ function takeTopMemberAction() {
       showActionTaken(signedInMessage(now));
     } else {
       registerEvent({
-        type: 'refusal',
+        type: 'inform',
         member: topMember.id,
         date: now.toISOString(),
         operator: operator.id
       });
-      showActionTaken(refusedMessage(now));
+      showActionTaken(enjoinderMessage(now));
     }
 
   // Initial operator login
-  } else openTopMemberAsOperator();
+  } else startTopMemberAsOperator();
 }
 
 topActionButton.addEventListener('click', takeTopMemberAction);
+
+function closeSignin() {
+  return registerEvent({
+    type: 'close',
+    date: new Date().toISOString()
+  }).then(teardownAndEnd);
+}
 
 function takeFinishAction() {
   var now = new Date();
   if (operator) {
     registerEvent({
-      type: 'close',
+      type: 'stop',
       operator: operator.id,
       date: now.toISOString()
     });
     operator = null;
     updateOperatorState();
   } else {
-    teardownAndEnd();
+    return closeSignin();
   }
 }
 
@@ -416,15 +445,15 @@ memberSearchInput.addEventListener('input', function(evt) {
 var saveSigninsButton = document.getElementById('save-signins');
 
 function saveSignins() {
-  saveAs(new Blob([JSON.stringify(registry)], {type:'text/json'}),
+  saveAs(new Blob([JSON.stringify(checkinRecord)], {type:'text/json'}),
     isoDate() + '_signins.json', true);
 }
 
 saveSigninsButton.addEventListener('click', saveSignins);
 
 function fullyReset() {
-  registry = [];
-  localforage.removeItem(registryId).then(changeMode.bind(null, 'setup'));
+  startNewCheckinRecord();
+  localforage.removeItem(checkinRecordId).then(changeMode.bind(null, 'setup'));
 }
 
 document.getElementById('start-new')

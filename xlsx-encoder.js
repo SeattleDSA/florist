@@ -21,6 +21,16 @@ function xlsxBufferToUglyMemberList(buffer) {
 var nameFields = ['first_name', 'middle_name', 'last_name', 'suffix',
   'family_first_name', 'family_last_name'];
 
+function monthName(date) {
+  return ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ][new Date(date || Date.now()).getMonth()];
+}
+
+function currentYear(date) {
+  return new Date().getFullYear().toString();
+}
+
 function isoDate(date) {
   return new Date(date || Date.now()).toISOString().slice(0,10);
 }
@@ -64,11 +74,13 @@ function objectToJsonArrayBuffer(obj) {
 }
 
 var formElement = document.getElementById('form');
+var eventNameInput = document.getElementById('event-name');
 var xlsxFileInput = document.getElementById('xlsx-file');
 var passphraseInput = document.getElementById('passphrase');
 var strengthBar = document.getElementById('strength');
 var downloadButton = document.getElementById('dl-button');
 
+eventNameInput.value = monthName() + ' ' + currentYear() + ' General Meeting';
 surpass(passphraseInput, {double: true});
 
 var strengthBarBaseClass = "";
@@ -92,9 +104,23 @@ function updateButtonState() {
     xlsxFileInput.files[0] && passphraseInput.value && passphraseIsAdequate);
 }
 
+function createEventExportForMemberList(memberList) {
+  return {
+    name: eventNameInput.value,
+    created: new Date().toISOString(),
+    members: memberList
+  };
+}
+
+function defaultDatabaseFilename() {
+  return eventNameInput.value.toLowerCase()
+    .replace(/\s+/g,'-').replace(/\W+/g,'') + '_memberlist.json.sbox';
+}
+
 function downloadEncryptedDatabase() {
   getArrayBufferFromFile(xlsxFileInput.files[0])
     .then(xlsxBufferToMeetingMemberList)
+    .then(createEventExportForMemberList)
     .then(objectToJsonArrayBuffer)
     .then(function(memberListBuffer) {
       var passphraseHashData = nacl.hash(
@@ -105,7 +131,7 @@ function downloadEncryptedDatabase() {
       var encryptedBlob = new Blob([
         nacl.secretbox(memberListBuffer, secretNonce, secretKey)],
         {type:'application/octet-stream'});
-      saveAs(encryptedBlob, isoDate() + '_memberlist.json.sbox', true);
+      saveAs(encryptedBlob, defaultDatabaseFilename(), true);
     });
 }
 
