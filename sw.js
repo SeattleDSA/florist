@@ -54,6 +54,11 @@ function announceUpdate(url) {
 function areResponsesEqual(cachedResponse, newResponse) {
   var cachedHeader, newHeader;
 
+  // if one response is missing, there's no "change" (we're starting here)
+  if (!cachedResponse || !newResponse) {
+    return Promise.resolve(false);
+  }
+
   // if either response is opaque / a network error
   // (the latter not being likely to be sent to this function as written)
   if (!(cachedResponse.status && newResponse.status)) {
