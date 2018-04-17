@@ -13,7 +13,6 @@
   border: none;
 }
 
-
 .surpass_check-row {
   height: 3rem;
 }
@@ -41,4 +40,12 @@ button.surpass_shroud-button:hover {
 }
 .surpass_shroud-mode .surpass_mode-indicator {
   margin-right: 7.1rem;
+}
+
+#final-json {
+  min-height: 360px;
+  background-image: url("assets/finish-line-bg.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
