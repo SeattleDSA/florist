@@ -41,7 +41,6 @@ function lastEventIndexOfTypeForMember(eventType, memberId) {
   return -1;
 }
 
-var endingEventNameElement = document.getElementById('ending-event-name');
 var finalJsonTextarea = document.getElementById('final-json');
 
 function teardownAndEnd() {
@@ -52,7 +51,6 @@ function teardownAndEnd() {
   operator = null;
   topMember = null;
   // write out our fallback / inspection stuff
-  endingEventNameElement.textContent = checkinRecord.at;
   finalJsonTextarea.value = JSON.stringify(checkinRecord, null, 2);
   changeMode('end');
 }

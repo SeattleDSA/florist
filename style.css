@@ -49,3 +49,7 @@ button.surpass_shroud-button:hover {
   background-position: center;
   background-size: contain;
 }
+
+h1 {
+  text-align: center;
+}
