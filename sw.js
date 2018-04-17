@@ -1,4 +1,4 @@
-/* global self caches fetch */
+/* global self workbox */
 
 "use strict";
 
@@ -20,14 +20,6 @@ var coreFiles = [
   'https://cdn.jsdelivr.net/npm/file-saver@1.3.8/FileSaver.min.js'
 ];
 
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    caches.open('core').then(function(cache) {
-      return cache.addAll(coreFiles);
-    })
-  );
-});
-
 // vaguely inspired by recipes like https://serviceworke.rs/strategy-cache-update-and-refresh_service-worker_doc.html
 
 function areBodiesEqual(bodies) {
@@ -48,55 +40,54 @@ function areBodiesEqual(bodies) {
     });
 }
 
-function announceUpdatedRequest(request) {
+function announceUpdate(url) {
   return self.clients.matchAll().then(function (clients) {
     clients.forEach(function (client) {
-      client.postMessage(JSON.stringify({
+      client.postMessage({
         type: 'update',
-        url: request.url
-      }));
+        url: url
+      });
     });
   });
 }
 
 function areResponsesEqual(cachedResponse, newResponse) {
-  var cachedEtag = cachedResponse.headers.get('ETag');
-  var newEtag = newResponse.headers.get('ETag');
-  if (cachedEtag && newEtag) {
-    return Promise.resolve(cachedEtag == newEtag);
-  } else {
-    return areBodiesEqual([cachedResponse.clone(), newResponse.clone()]);
+  var cachedHeader, newHeader;
+
+  // if either response is opaque / a network error
+  // (the latter not being likely to be sent to this function as written)
+  if (!(cachedResponse.status && newResponse.status)) {
+    // this is only noteworthy if the new response isn't opaque / an error
+    return Promise.resolve(!!newResponse.status);
   }
+
+  // compare ETags or Last-Modified, if present for comparison
+  cachedHeader = cachedResponse.headers.get('ETag');
+  newHeader = newResponse.headers.get('ETag');
+  if (cachedHeader && newHeader) {
+    return Promise.resolve(cachedHeader == newHeader);
+  }
+  cachedHeader = cachedResponse.headers.get('Last-Modified');
+  newHeader = newResponse.headers.get('Last-Modified');
+  if (cachedHeader && newHeader) {
+    return Promise.resolve(cachedHeader == newHeader);
+  }
+
+  // fall back to outright comparing bodies byte by byte
+  // NOTE: Unless Workbox gives plugins responses from cache,
+  //   it will probably be too late to clone these request bodies
+  return areBodiesEqual([cachedResponse.clone(), newResponse.clone()]);
 }
 
-function checkForUpdatedResponse(request, cachedResponse, newResponse) {
-  return areResponsesEqual(cachedResponse, newResponse).then(
-    function(unchanged) {
-      if (!unchanged) return addNewResponseToCache(request, newResponse)
-        .then(function(){return announceUpdatedRequest(request)});
-    });
-}
+importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.1.0/workbox-sw.js");
 
-function addNewResponseToCache(request, response) {
-  return caches.open('core').then(function(cache) {
-    return cache.put(request, response);
-  });
-}
+workbox.precaching.precache(coreFiles);
 
-// since the only thing this app ever fetches is core files,
-// we handle all requests as potentially-updated and to-be-cached
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    Promise.all([caches.match(event.request), fetch(event.request)])
-    .then(function(responses) {
-      var cachedResponse = responses[0];
-      var newResponse = responses[1];
-      event.waitUntil(cachedResponse ?
-        checkForUpdatedResponse(event.request,
-          cachedResponse.clone(), newResponse.clone())
-      : addNewResponseToCache(event.request, newResponse.clone()));
-
-      return cachedResponse || newResponse;
-    })
-  );
-});
+workbox.routing.setDefaultHandler(workbox.strategies.staleWhileRevalidate({
+  plugins: [{
+    cacheDidUpdate: function (cacheName, url, cachedResponse, newResponse) {
+      return areResponsesEqual(cachedResponse, newResponse).then(
+        function(unchanged) {if (!unchanged) return announceUpdate(url)});
+    }
+  }]
+}));
