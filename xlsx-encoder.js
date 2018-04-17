@@ -1,4 +1,4 @@
-/* global XLSX btoa nacl saveAs Blob */
+/* global XLSX btoa nacl saveAs Blob zxcvbn */
 (function(){
 "use strict";
 
@@ -66,10 +66,28 @@ function objectToJsonArrayBuffer(obj) {
 var formElement = document.getElementById('form');
 var xlsxFileInput = document.getElementById('xlsx-file');
 var passphraseInput = document.getElementById('passphrase');
+var strengthBar = document.getElementById('strength');
 var downloadButton = document.getElementById('dl-button');
 
+var strengthBarBaseClass = "";
+var strengthBarAdequateClass = "success";
+var strengthBarInadequateClass = "error";
+
+// min log10 guesses necessary to require "centuries" for a fast parallel hash
+var adequateZxcvbnScore = 20;
+strengthBar.max = adequateZxcvbnScore;
+
 function updateButtonState() {
-  downloadButton.disabled = !(xlsxFileInput.files[0] && passphraseInput.value);
+  var zxcvbnScore = zxcvbn(passphraseInput.value).guesses_log10;
+  var passphraseIsAdequate = zxcvbnScore >= adequateZxcvbnScore;
+
+  strengthBar.value = zxcvbnScore;
+  strengthBar.className =
+    strengthBarBaseClass + (passphraseIsAdequate ?
+      strengthBarAdequateClass : strengthBarInadequateClass);
+
+  downloadButton.disabled = !(
+    xlsxFileInput.files[0] && passphraseInput.value && passphraseIsAdequate);
 }
 
 function downloadEncryptedDatabase() {

@@ -13,6 +13,7 @@ var coreFiles = [
   'https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.0/fuse.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.1/localforage.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.12.9/xlsx.full.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js',
   'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js'
 ];
 
