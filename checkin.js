@@ -199,30 +199,29 @@ function logErrorAndResolve(err) {
   console.error(err);
 }
 
-var pendingRegistryUpdate = null;
-var nextPendingRegistryUpdate = null;
+var pendingRegistryPersistence = null;
+var pendingRegistryPersistenceIsStale = false;
 function registerEvent(evt) {
-  function persistRegistry() {
-    if (pendingRegistryUpdate) {
-      if (nextPendingRegistryUpdate) {
-        pendingRegistryUpdate = nextPendingRegistryUpdate;
-        nextPendingRegistryUpdate = null;
-        return pendingRegistryUpdate;
-      } else {
-        return nextPendingRegistryUpdate =
-          pendingRegistryUpdate.then(persistRegistry, logErrorAndResolve);
-      }
+  function repeatOrComplete() {
+    if (pendingRegistryPersistenceIsStale) {
+      pendingRegistryPersistenceIsStale = false;
+      return persistRegistry();
     } else {
-      return pendingRegistryUpdate =
-        localForage.setItem(registryId, registry).catch(logErrorAndResolve);
+      return pendingRegistryPersistence = null;
     }
+  }
+
+  function persistRegistry() {
+    return localForage.setItem(registryId, registry)
+      .catch(logErrorAndResolve).then(repeatOrComplete);
   }
 
   registry.push(evt);
 
-  if (pendingRegistryUpdate && nextPendingRegistryUpdate) {
-    return nextPendingRegistryUpdate;
-  } else return persistRegistry();
+  if (pendingRegistryPersistence) {
+    pendingRegistryPersistenceIsStale = true;
+    return pendingRegistryPersistence;
+  } else return pendingRegistryPersistence = persistRegistry();
 }
 
 // TODO: move this to utils, too
