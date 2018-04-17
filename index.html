@@ -24,23 +24,36 @@
       <button type="submit" class="button-block button-primary field" id="setup-button">Start Sign-in</button>
     </form>
   </div>
-  <div id="lookup-mode" hidden>
-    <div class="field">
-      <label for="member-search">Member Name</label>
-      <input id="member-search" maxlength="32">
-    </div>
-    <div id="top-result" class="border padding-s" hidden>
-      <div id="top-name" class="font-size-xl"></div>
-      <div id="top-details">
-        <span id="top-date"></span>
-        <span id="top-action" class="right"> <span id="top-action-taken" hidden></span> <button type="button" id="top-action-button" class="button-xs"></button></span>
+  <div id="signin-mode" hidden>
+    <div id="lookup-mode">
+      <div class="field">
+        <label for="member-search">Member Name</label>
+        <input id="member-search" maxlength="32">
       </div>
+      <div id="top-result" class="border padding-s" hidden>
+        <div id="top-name" class="font-size-xl"></div>
+        <div id="top-details">
+          <span id="top-date"></span>
+          <span id="top-action" class="right"> <span id="top-action-taken" hidden></span> <button type="button" id="top-action-button" class="button-xs"></button></span>
+        </div>
+      </div>
+      <div id="no-result" class="border text-center padding-s">
+      </div>
+      <button type="button" id="add-note-button" class="field button-block">Add note on record</button>
     </div>
-    <div id="no-result" class="border text-center padding-s">
+    <div id="note-mode" hidden>
+      <div class="field">
+        <label for="note-content">Note</label>
+        <textarea id="note-content"></textarea>
+      </div>
+      <div class="field">
+        <button id="save-note" type="button" class="button-primary">Add note</button>
+        <button id="discard-note" type="button">Cancel</button>
+      </div>
     </div>
     <div id="lookup-footer" class="container position-bottom background-dark padding-xs color-white">
       <span id="footer-message"></span>
-      <button id="finish-button" class="right button-xs warning"></button>
+      <button id="finish-button" type="button" class="right button-xs warning"></button>
     </div>
   </div>
   <div id="end-mode" hidden>

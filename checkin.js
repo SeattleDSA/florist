@@ -14,7 +14,7 @@ var checkinRecordId = 'storedCheckinRecord';
 
 var modeContainers = {
   setup: document.getElementById('setup-mode'),
-  lookup: document.getElementById('lookup-mode'),
+  signin: document.getElementById('signin-mode'),
   end: document.getElementById('end-mode'),
   lateEnd: document.getElementById('late-end-mode')
 };
@@ -199,7 +199,9 @@ function finishSetup() {
   }
   updateOperatorState();
 
-  changeMode('lookup');
+  leaveNoteMode();
+
+  changeMode('signin');
 }
 
 function attemptSetup() {
@@ -230,6 +232,7 @@ setupFormElement.addEventListener('submit', function (evt) {
 
 // signin stuff
 
+var lookupModeContainer = document.getElementById('lookup-mode');
 var memberSearchInput = document.getElementById('member-search');
 var topResult = document.getElementById('top-result');
 var noResult = document.getElementById('no-result');
@@ -238,6 +241,13 @@ var topDetails = document.getElementById('top-details');
 var topDate = document.getElementById('top-date');
 var topActionButton = document.getElementById('top-action-button');
 var topActionTaken = document.getElementById('top-action-taken');
+
+var noteStartButton = document.getElementById('add-note-button');
+var noteModeContainer = document.getElementById('note-mode');
+var noteTextArea = document.getElementById('note-content');
+var saveNoteButton = document.getElementById('save-note');
+var discardNoteButton = document.getElementById('discard-note');
+
 var footerMessage = document.getElementById('footer-message');
 var finishButton = document.getElementById('finish-button');
 
@@ -406,6 +416,30 @@ function takeTopMemberAction() {
 }
 
 topActionButton.addEventListener('click', takeTopMemberAction);
+
+function enterNoteMode() {
+  lookupModeContainer.hidden = true;
+  noteModeContainer.hidden = false;
+}
+
+function leaveNoteMode() {
+  noteTextArea.value = '';
+  noteModeContainer.hidden = true;
+  lookupModeContainer.hidden = false;
+}
+
+function recordNote() {
+  return registerEvent({
+    type: 'note',
+    body: noteTextArea.value,
+    operator: operator ? operator.id : '0',
+    date: new Date().toISOString()
+  }).then(leaveNoteMode);
+}
+
+noteStartButton.addEventListener('click', enterNoteMode);
+saveNoteButton.addEventListener('click', recordNote);
+discardNoteButton.addEventListener('click', leaveNoteMode);
 
 function closeSignin() {
   return registerEvent({
