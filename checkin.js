@@ -1,4 +1,4 @@
-/* global Fuse nacl localStorage Blob saveAs */
+/* global Fuse nacl localForage Blob saveAs */
 (function(){
 "use strict";
 
@@ -55,40 +55,30 @@ function teardownAndEnd() {
   changeMode('end');
 }
 
-registry = localStorage.getItem(registryId);
-if (registry) {
-  registry = JSON.parse(registry);
-  var lastOpenIndex = lastEventIndexOfType('open');
-  var lastCloseIndex = lastEventIndexOfType('close');
-  if (lastCloseIndex > lastOpenIndex) {
-    if (new Date(registry[lastCloseIndex].date) > Date.now() - 86400000) {
-      teardownAndEnd();
+function initializeRegistry(existingRegistry) {
+  if (existingRegistry) {
+    registry = existingRegistry;
+    var lastOpenIndex = lastEventIndexOfType('open');
+    var lastCloseIndex = lastEventIndexOfType('close');
+    if (lastCloseIndex > lastOpenIndex) {
+      if (new Date(registry[lastCloseIndex].date) > Date.now() - 86400000) {
+        teardownAndEnd();
+      } else {
+        changeMode('late-end');
+      }
     } else {
-      changeMode('late-end');
+      // TODO: display note that there is an unfinished meeting in progress
+
+      // Signal to load operator after setup
+      operator = registry[lastOpenIndex].operator;
     }
   } else {
-    // TODO: display note that there is an unfinished meeting in progress
-
-    // Signal to load operator after setup
-    operator = registry[lastOpenIndex].operator;
+    registry = [];
   }
-} else {
-  registry = [];
 }
 
-// setup stuff
-
-function setupSearch() {
-  fuse = new Fuse(memberList, {
-    shouldSort: true,
-    tokenize: true,
-    threshold: 0.6,
-    location: 0,
-    distance: 100,
-    maxPatternLength: 32,
-    keys: ['name']
-  });
-}
+var registryInitializedPromise =
+  localForage.getItem(registryId).then(initializeRegistry);
 
 var setupFormElement = document.getElementById('setup-form');
 var sboxFileInput = document.getElementById('sbox-file');
@@ -123,14 +113,29 @@ function getArrayBufferFromFile(file) {
   });
 }
 
-function finishSetup() {
-  // burn the way in
+function setupMemberList(decodedMemberList) {
+  // nullify inputs that could be used for potential re-entry
   sboxFileInput.value = null;
   passphraseInput.value = '';
   updateSetupButtonState();
 
-  setupSearch();
+  memberList = decodedMemberList;
 
+  // set up search structure
+  fuse = new Fuse(memberList, {
+    shouldSort: true,
+    tokenize: true,
+    threshold: 0.6,
+    location: 0,
+    distance: 100,
+    maxPatternLength: 32,
+    keys: ['name']
+  });
+}
+
+// note that this is called only by the success branch of attemptSetup
+// and only after initializeRegistry has completed
+function finishSetup() {
   // Resume mode
   if (operator) {
     operator = memberList.find(function(member){
@@ -156,8 +161,8 @@ function attemptSetup() {
   getArrayBufferFromFile(sboxFileInput.files[0]).then(function(boxBuffer) {
     var jsonBuffer = nacl.secretbox.open(boxBuffer, secretNonce, secretKey);
     if (jsonBuffer) {
-      memberList = JSON.parse(arrayBufferToUtf8String(jsonBuffer));
-      return finishSetup();
+      setupMemberList(JSON.parse(arrayBufferToUtf8String(jsonBuffer)));
+      return registryInitializedPromise.then(finishSetup);
     } else {
       // TODO: do in-page auth failure reporting
       alert('Invalid passphrase');
@@ -189,9 +194,35 @@ var topDetailsBaseClass = '';
 var topDetailsCurrentDuesClass = 'current-dues';
 var topDetailsExpiredDuesClass = 'expired-dues';
 
+
+function logErrorAndResolve(err) {
+  console.error(err);
+}
+
+var pendingRegistryUpdate = null;
+var nextPendingRegistryUpdate = null;
 function registerEvent(evt) {
+  function persistRegistry() {
+    if (pendingRegistryUpdate) {
+      if (nextPendingRegistryUpdate) {
+        pendingRegistryUpdate = nextPendingRegistryUpdate;
+        nextPendingRegistryUpdate = null;
+        return pendingRegistryUpdate;
+      } else {
+        return nextPendingRegistryUpdate =
+          pendingRegistryUpdate.then(persistRegistry, logErrorAndResolve);
+      }
+    } else {
+      return pendingRegistryUpdate =
+        localForage.setItem(registryId, registry).catch(logErrorAndResolve);
+    }
+  }
+
   registry.push(evt);
-  localStorage.setItem(registryId, JSON.stringify(registry));
+
+  if (pendingRegistryUpdate && nextPendingRegistryUpdate) {
+    return nextPendingRegistryUpdate;
+  } else return persistRegistry();
 }
 
 // TODO: move this to utils, too
@@ -391,11 +422,9 @@ function saveSignins() {
 saveSigninsButton.addEventListener('click', saveSignins);
 
 function fullyReset() {
-  localStorage.removeItem(registryId);
   registry = [];
-  changeMode('setup');
+  localForage.removeItem(registryId).then(changeMode.bind(null, 'setup'));
 }
-
 
 document.getElementById('start-new')
   .addEventListener('click', fullyReset);
