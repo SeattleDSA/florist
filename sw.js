@@ -8,13 +8,13 @@ var coreFiles = [
   'setup.js',
   'checkin.js',
   'xlsx-encoder.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/bigfishtv-turret/4.1.3/turretcss.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/tweetnacl/1.0.0/nacl-fast.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.0/fuse.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.1/localforage.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.12.9/xlsx.full.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js'
+  'https://cdn.jsdelivr.net/npm/turretcss@4.1.3/dist/turretcss.min.css',
+  'https://cdn.jsdelivr.net/npm/tweetnacl@1.0.0/nacl-fast.min.js',
+  'https://cdn.jsdelivr.net/npm/fuse.js@3.2.0/dist/fuse.min.js',
+  'https://cdn.jsdelivr.net/npm/localforage@1.7.1/dist/localforage.min.js',
+  'https://cdn.jsdelivr.net/npm/xlsx@0.12.9/dist/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js',
+  'https://cdn.jsdelivr.net/npm/file-saver@1.3.8/FileSaver.min.js'
 ];
 
 self.addEventListener('install', function(event) {
