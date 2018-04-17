@@ -1,4 +1,4 @@
-/* global XLSX btoa nacl saveAs Blob zxcvbn */
+/* global XLSX btoa nacl saveAs Blob zxcvbn surpass */
 (function(){
 "use strict";
 
@@ -68,6 +68,8 @@ var xlsxFileInput = document.getElementById('xlsx-file');
 var passphraseInput = document.getElementById('passphrase');
 var strengthBar = document.getElementById('strength');
 var downloadButton = document.getElementById('dl-button');
+
+surpass(passphraseInput, {double: true});
 
 var strengthBarBaseClass = "";
 var strengthBarAdequateClass = "success";

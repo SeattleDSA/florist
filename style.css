@@ -4,3 +4,41 @@
   left: 0;
   right: 0;
 }
+
+.surpass_container button {
+  border-radius: 0;
+}
+
+.surpass_container input:focused {
+  border: none;
+}
+
+
+.surpass_check-row {
+  height: 3rem;
+}
+
+button.surpass_shroud-button:hover {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4'><rect x='1' y='1' width='2' height='2' /></svg>");
+  background-size: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.surpass_gross-simpl-spot {
+  font-size: 16px;
+}
+
+.surpass_mode-button {
+  font-size: 32px;
+}
+
+.surpass_expose-mode .surpass_mode-indicator {
+  margin-right: 1.1rem;
+}
+.surpass_mask-mode .surpass_mode-indicator {
+  margin-right: 4.1rem;
+}
+.surpass_shroud-mode .surpass_mode-indicator {
+  margin-right: 7.1rem;
+}

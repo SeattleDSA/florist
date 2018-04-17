@@ -1,4 +1,4 @@
-/* global Fuse nacl localforage Blob saveAs */
+/* global Fuse nacl localforage Blob saveAs surpass */
 (function(){
 "use strict";
 
@@ -84,6 +84,8 @@ var setupFormElement = document.getElementById('setup-form');
 var sboxFileInput = document.getElementById('sbox-file');
 var passphraseInput = document.getElementById('passphrase');
 var setupButton = document.getElementById('setup-button');
+
+surpass(passphraseInput);
 
 function updateSetupButtonState() {
   setupButton.disabled = !(sboxFileInput.files[0] && passphraseInput.value);
