@@ -64,7 +64,7 @@ function initializeRegistry(existingRegistry) {
       if (new Date(registry[lastCloseIndex].date) > Date.now() - 86400000) {
         teardownAndEnd();
       } else {
-        changeMode('late-end');
+        changeMode('lateEnd');
       }
     } else {
       // TODO: display note that there is an unfinished meeting in progress
