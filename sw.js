@@ -59,7 +59,7 @@ function announceUpdatedRequest(request) {
   });
 }
 
-function doResponsesDiffer(cachedResponse, newResponse) {
+function areResponsesEqual(cachedResponse, newResponse) {
   var cachedEtag = cachedResponse.headers.get('ETag');
   var newEtag = newResponse.headers.get('ETag');
   if (cachedEtag && newEtag) {
@@ -70,9 +70,9 @@ function doResponsesDiffer(cachedResponse, newResponse) {
 }
 
 function checkForUpdatedResponse(request, cachedResponse, newResponse) {
-  return doResponsesDiffer(cachedResponse, newResponse).then(
-    function(difference) {
-      if (difference) return addNewResponseToCache(request, newResponse)
+  return areResponsesEqual(cachedResponse, newResponse).then(
+    function(unchanged) {
+      if (!unchanged) return addNewResponseToCache(request, newResponse)
         .then(function(){return announceUpdatedRequest(request)});
     });
 }
