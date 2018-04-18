@@ -1,4 +1,4 @@
-/* global Fuse nacl localforage Blob saveAs surpass */
+/* global Fuse nacl localforage Blob saveAs surpass InputEvent */
 (function(){
 "use strict";
 
@@ -161,6 +161,9 @@ function setupMemberList(decodedDatabase) {
   // nullify inputs that could be used for potential re-entry
   sboxFileInput.value = null;
   passphraseInput.value = '';
+  if (window.InputEvent) { // update surpass's state
+    passphraseInput.dispatchEvent(new InputEvent('input'));
+  }
   updateSetupButtonState();
 
   // store data in globals
