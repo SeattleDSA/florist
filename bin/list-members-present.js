@@ -1,7 +1,7 @@
 "use strict";
 
 const xlsx = require("xlsx");
-const signins = require(process.argv[2]);
+const signins = JSON.parse(require("fs").readFileSync(process.argv[2]));
 
 const memberList = xlsx.readFile(process.argv[3]);
 const memberRows = xlsx.utils.sheet_to_json(
@@ -26,4 +26,4 @@ function memberName(row) {
 
 const memberMap = new Map(memberRows.map(r=>[r.AK_id, memberName(r)]));
 console.log(signins.events.filter(x=>({signin:true,inform:true}[x.type]))
-  .map(x=>memberName(memberMap.get(x.member))));
+  .map(x=>memberMap.get(x.member)).join('\n'));
